@@ -45,24 +45,26 @@ defmodule SymphonyElixirWeb.DashboardLive do
         <div class="hero-grid">
           <div>
             <p class="eyebrow">
-              Symphony Observability
+              // SYMPHONY_OS_DAEMON
             </p>
             <h1 class="hero-title">
-              Operations Dashboard
+              Operations Control
             </h1>
             <p class="hero-copy">
-              Current state, retry pressure, token usage, and orchestration health for the active Symphony runtime.
+              > STATUS: INITIALIZED<br>
+              > POLLING_TRACKER: ACTIVE<br>
+              > MONITORING_WORKSPACE_INTEGRITY...
             </p>
           </div>
 
           <div class="status-stack">
             <span class="status-badge status-badge-live">
               <span class="status-badge-dot"></span>
-              Live
+              SYS.ONLINE
             </span>
             <span class="status-badge status-badge-offline">
               <span class="status-badge-dot"></span>
-              Offline
+              SYS.OFFLINE
             </span>
           </div>
         </div>
@@ -71,7 +73,7 @@ defmodule SymphonyElixirWeb.DashboardLive do
       <%= if @payload[:error] do %>
         <section class="error-card">
           <h2 class="error-title">
-            Snapshot unavailable
+            [ERR] SNAPSHOT_UNAVAILABLE
           </h2>
           <p class="error-copy">
             <strong><%= @payload.error.code %>:</strong> <%= @payload.error.message %>
@@ -80,72 +82,61 @@ defmodule SymphonyElixirWeb.DashboardLive do
       <% else %>
         <section class="metric-grid">
           <article class="metric-card">
-            <p class="metric-label">Running</p>
+            <p class="metric-label">SYS.RUNNING</p>
             <p class="metric-value numeric"><%= @payload.counts.running %></p>
-            <p class="metric-detail">Active issue sessions in the current runtime.</p>
+            <p class="metric-detail">Active concurrent agents.</p>
           </article>
 
           <article class="metric-card">
-            <p class="metric-label">Retrying</p>
+            <p class="metric-label">SYS.RETRYING</p>
             <p class="metric-value numeric"><%= @payload.counts.retrying %></p>
-            <p class="metric-detail">Issues waiting for the next retry window.</p>
+            <p class="metric-detail">Suspended in backoff.</p>
           </article>
 
           <article class="metric-card">
-            <p class="metric-label">Total tokens</p>
+            <p class="metric-label">NET.TOKENS</p>
             <p class="metric-value numeric"><%= format_int(@payload.codex_totals.total_tokens) %></p>
             <p class="metric-detail numeric">
-              In <%= format_int(@payload.codex_totals.input_tokens) %> / Out <%= format_int(@payload.codex_totals.output_tokens) %>
+              TX: <%= format_int(@payload.codex_totals.input_tokens) %> / RX: <%= format_int(@payload.codex_totals.output_tokens) %>
             </p>
           </article>
 
           <article class="metric-card">
-            <p class="metric-label">Runtime</p>
+            <p class="metric-label">UPTIME.CODEX</p>
             <p class="metric-value numeric"><%= format_runtime_seconds(total_runtime_seconds(@payload, @now)) %></p>
-            <p class="metric-detail">Total Codex runtime across completed and active sessions.</p>
+            <p class="metric-detail">Cumulative sub-process duration.</p>
           </article>
         </section>
 
         <section class="section-card">
           <div class="section-header">
             <div>
-              <h2 class="section-title">Rate limits</h2>
-              <p class="section-copy">Latest upstream rate-limit snapshot, when available.</p>
-            </div>
-          </div>
-
-          <pre class="code-panel"><%= pretty_value(@payload.rate_limits) %></pre>
-        </section>
-
-        <section class="section-card">
-          <div class="section-header">
-            <div>
-              <h2 class="section-title">Running sessions</h2>
-              <p class="section-copy">Active issues, last known agent activity, and token usage.</p>
+              <h2 class="section-title">PROC.ACTIVE_SESSIONS</h2>
+              <p class="section-copy">Monitoring real-time telemetry from assigned sub-routines.</p>
             </div>
           </div>
 
           <%= if @payload.running == [] do %>
-            <p class="empty-state">No active sessions.</p>
+            <p class="empty-state">> IDLE. No active process threads.</p>
           <% else %>
             <div class="table-wrap">
               <table class="data-table data-table-running">
                 <colgroup>
                   <col style="width: 12rem;" />
                   <col style="width: 8rem;" />
-                  <col style="width: 7.5rem;" />
+                  <col style="width: 10rem;" />
                   <col style="width: 8.5rem;" />
                   <col />
                   <col style="width: 10rem;" />
                 </colgroup>
                 <thead>
                   <tr>
-                    <th>Issue</th>
+                    <th>Identifier</th>
                     <th>State</th>
-                    <th>Session</th>
-                    <th>Runtime / turns</th>
-                    <th>Codex update</th>
-                    <th>Tokens</th>
+                    <th>Thread.ID</th>
+                    <th>Uptime/Turns</th>
+                    <th>Subprocess.Telemetry</th>
+                    <th>Token.I/O</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -153,7 +144,7 @@ defmodule SymphonyElixirWeb.DashboardLive do
                     <td>
                       <div class="issue-stack">
                         <span class="issue-id"><%= entry.issue_identifier %></span>
-                        <a class="issue-link" href={"/api/v1/#{entry.issue_identifier}"}>JSON details</a>
+                        <a class="issue-link" href={"/api/v1/#{entry.issue_identifier}"}>[RAW_DUMP]</a>
                       </div>
                     </td>
                     <td>
@@ -167,14 +158,14 @@ defmodule SymphonyElixirWeb.DashboardLive do
                           <button
                             type="button"
                             class="subtle-button"
-                            data-label="Copy ID"
+                            data-label="[COPY]"
                             data-copy={entry.session_id}
-                            onclick="navigator.clipboard.writeText(this.dataset.copy); this.textContent = 'Copied'; clearTimeout(this._copyTimer); this._copyTimer = setTimeout(() => { this.textContent = this.dataset.label }, 1200);"
+                            onclick="navigator.clipboard.writeText(this.dataset.copy); this.textContent = '[COPIED]'; clearTimeout(this._copyTimer); this._copyTimer = setTimeout(() => { this.textContent = this.dataset.label }, 1200);"
                           >
-                            Copy ID
+                            [COPY]
                           </button>
                         <% else %>
-                          <span class="muted">n/a</span>
+                          <span class="muted">AWAITING_SYNC</span>
                         <% end %>
                       </div>
                     </td>
@@ -182,21 +173,21 @@ defmodule SymphonyElixirWeb.DashboardLive do
                     <td>
                       <div class="detail-stack">
                         <span
-                          class="event-text"
-                          title={entry.last_message || to_string(entry.last_event || "n/a")}
-                        ><%= entry.last_message || to_string(entry.last_event || "n/a") %></span>
+                          class="event-text mono"
+                          title={entry.last_message || to_string(entry.last_event || "nil")}
+                        >> <%= entry.last_message || to_string(entry.last_event || "nil") %></span>
                         <span class="muted event-meta">
-                          <%= entry.last_event || "n/a" %>
+                          EVT: <%= entry.last_event || "N/A" %>
                           <%= if entry.last_event_at do %>
-                            · <span class="mono numeric"><%= entry.last_event_at %></span>
+                            | TS: <span class="mono numeric"><%= entry.last_event_at %></span>
                           <% end %>
                         </span>
                       </div>
                     </td>
                     <td>
                       <div class="token-stack numeric">
-                        <span>Total: <%= format_int(entry.tokens.total_tokens) %></span>
-                        <span class="muted">In <%= format_int(entry.tokens.input_tokens) %> / Out <%= format_int(entry.tokens.output_tokens) %></span>
+                        <span style="color: var(--secondary-color)">SUM: <%= format_int(entry.tokens.total_tokens) %></span>
+                        <span class="muted">TX:<%= format_int(entry.tokens.input_tokens) %> / RX:<%= format_int(entry.tokens.output_tokens) %></span>
                       </div>
                     </td>
                   </tr>
@@ -209,22 +200,22 @@ defmodule SymphonyElixirWeb.DashboardLive do
         <section class="section-card">
           <div class="section-header">
             <div>
-              <h2 class="section-title">Retry queue</h2>
-              <p class="section-copy">Issues waiting for the next retry window.</p>
+              <h2 class="section-title">PROC.RETRY_QUEUE</h2>
+              <p class="section-copy">Threads stalled in backoff state waiting for retry tick.</p>
             </div>
           </div>
 
           <%= if @payload.retrying == [] do %>
-            <p class="empty-state">No issues are currently backing off.</p>
+            <p class="empty-state">> IDLE. No pending retries.</p>
           <% else %>
             <div class="table-wrap">
               <table class="data-table" style="min-width: 680px;">
                 <thead>
                   <tr>
-                    <th>Issue</th>
-                    <th>Attempt</th>
-                    <th>Due at</th>
-                    <th>Error</th>
+                    <th>Identifier</th>
+                    <th>Attempt.Count</th>
+                    <th>Due.Timestamp</th>
+                    <th>SIG.ERR</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -232,17 +223,27 @@ defmodule SymphonyElixirWeb.DashboardLive do
                     <td>
                       <div class="issue-stack">
                         <span class="issue-id"><%= entry.issue_identifier %></span>
-                        <a class="issue-link" href={"/api/v1/#{entry.issue_identifier}"}>JSON details</a>
+                        <a class="issue-link" href={"/api/v1/#{entry.issue_identifier}"}>[RAW_DUMP]</a>
                       </div>
                     </td>
-                    <td><%= entry.attempt %></td>
-                    <td class="mono"><%= entry.due_at || "n/a" %></td>
-                    <td><%= entry.error || "n/a" %></td>
+                    <td class="mono numeric"><%= entry.attempt %></td>
+                    <td class="mono numeric"><%= entry.due_at || "N/A" %></td>
+                    <td class="mono" style="color: var(--danger-color)"><%= entry.error || "N/A" %></td>
                   </tr>
                 </tbody>
               </table>
             </div>
           <% end %>
+        </section>
+
+        <section class="section-card">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">NET.RATE_LIMITS</h2>
+              <p class="section-copy">Upstream API quotas. Monitor for saturation.</p>
+            </div>
+          </div>
+          <pre class="code-panel"><%= pretty_value(@payload.rate_limits) %></pre>
         </section>
       <% end %>
     </section>
