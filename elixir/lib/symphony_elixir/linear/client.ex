@@ -210,18 +210,29 @@ defmodule SymphonyElixir.Linear.Client do
 
   defp extract_retry_after(response) do
     case Map.get(response, :headers) do
+      headers when is_map(headers) ->
+        val = Map.get(headers, "retry-after") || Map.get(headers, "Retry-After")
+        parse_retry_val(val)
+
       headers when is_list(headers) ->
         case get_header(headers, "retry-after") do
-          [val] ->
-            case Integer.parse(val) do
-              {seconds, _} -> seconds * 1000
-              _ -> nil
-            end
+          [val] -> parse_retry_val(val)
           _ -> nil
         end
+
       _ -> nil
     end
   end
+
+  defp parse_retry_val(val) when is_binary(val) do
+    case Integer.parse(val) do
+      {seconds, _} -> seconds * 1000
+      _ -> nil
+    end
+  end
+
+  defp parse_retry_val([val | _]) when is_binary(val), do: parse_retry_val(val)
+  defp parse_retry_val(_), do: nil
 
   defp get_header(headers, key) do
     Enum.find_value(headers, [], fn
